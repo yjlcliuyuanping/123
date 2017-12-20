@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!-- 配置数据源 -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="jdbcUrl" value="${url}"/>
+		<property name="user" value="${user}"/>
+		<property name="password" value="${password}"/>
+		<property name="driverClass" value="${driver}"/>
+		
+		<!-- c3p0连接池的配置 -->
+		<property name="minPoolSize" value="3"/>
+	</bean>
+	
+</beans>

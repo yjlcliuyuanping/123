@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace:指定映射器接口的全路径 -->
+
+<mapper namespace="com.yjlc.dao.Dao">
+<resultMap type="com.yjlc.entity.Data" id="map">
+<result property="invName" column="invName"/>
+<result property="yjcount" column="yjcount"/>
+</resultMap>
+
+	<select id="query" resultMap="map">	
+ set @cusMobile=#{phone};
+ select '总投资' invName,sum(b.trdAmount) yjcount from (select a.id id,sum(i.trd_amount) trdAmount  from (select t.id id from cus_customer t where t.id in ( select c.id from cus_customer c where 
+ c.cus_mobile in (@cusMobile) or t.rcm_cus_id in (select c1.id from cus_customer c1 where c1.cus_mobile in (@cusMobile ))))a
+ LEFT JOIN inv_investment i on i.cus_id=a.id   and i.trd_status=8 and  i.inv_status in (0,1,2) and i.end_time >= unix_timestamp('2017-12-01 00:00:00')*1000 and i.prd_source='prd_product' GROUP BY a.id
+ )b union all 
+
+select  '总推荐人数' invName, count(*) from cus_customer c where 
+ c.rcm_cus_id in (select c1.id from cus_customer c1 where c1.cus_mobile in (@cusMobile ) 
+) and c.reg_time >= unix_timestamp('2017-12-01 00:00:00')*1000
+union all
+
+select '某时间段投资额' invName, sum(b.trdAmount) from (
+select a.id id,sum(i.trd_amount) trdAmount  from (select t.id id from cus_customer t where t.id in ( select c.id from cus_customer c where 
+ c.cus_mobile in (@cusMobile) or t.rcm_cus_id in (select c1.id from cus_customer c1 where c1.cus_mobile in (@cusMobile)
+)) )a LEFT JOIN inv_investment i on i.cus_id=a.id  and i.end_time>unix_timestamp('2017-12-12 18:00:00')*1000 and i.end_time <![CDATA[<]]> unix_timestamp('2017-12-13')*1000  and i.trd_status=8 and  i.inv_status in (0,1,2) and i.prd_source='prd_product' GROUP BY a.id
+  )b 
+
+
+UNION all  
+select '当日投资' invName, sum(b.trdAmount) from (
+select a.id id,sum(i.trd_amount) trdAmount  from (select t.id id from cus_customer t where t.id in ( select c.id from cus_customer c where 
+ c.cus_mobile in (@cusMobile) or t.rcm_cus_id in (select c1.id from cus_customer c1 where c1.cus_mobile in (@cusMobile)
+)) )a LEFT JOIN inv_investment i on i.cus_id=a.id  and TO_DAYS(FROM_UNIXTIME(i.end_time/1000, '%Y-%c-%d %H:%i:%s'))=TO_DAYS(NOW())  and i.trd_status=8 and  i.inv_status in (0,1,2) and i.prd_source='prd_product' GROUP BY a.id
+  )b 
+union all 
+
+select '当日推荐人数' invName,count(*) from cus_customer c where 
+ c.rcm_cus_id in (select c1.id from cus_customer c1 where c1.cus_mobile in (@cusMobile ) and TO_DAYS(FROM_UNIXTIME(c1.reg_time/1000, '%Y-%c-%d %H:%i:%s'))=TO_DAYS(NOW()) 
+)
+	</select>
+</mapper>
